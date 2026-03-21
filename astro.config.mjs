@@ -17,29 +17,29 @@ export default defineConfig({
         {
           label: 'Getting Started',
           items: [
-            { label: 'Installation', slug: 'getting-started/installation' },
-            { label: 'Quick Start', slug: 'getting-started/quick-start' },
+            { label: 'Installation', slug: 'docs/getting-started/installation' },
+            { label: 'Quick Start', slug: 'docs/getting-started/quick-start' },
           ],
         },
         {
           label: 'Guides',
           items: [
-            { label: 'Memory Hierarchy', slug: 'guides/memory-hierarchy' },
-            { label: 'Best Practices', slug: 'guides/best-practices' },
+            { label: 'Memory Hierarchy', slug: 'docs/guides/memory-hierarchy' },
+            { label: 'Best Practices', slug: 'docs/guides/best-practices' },
           ],
         },
         {
           label: 'Reference',
           items: [
-            { label: 'Configuration', slug: 'reference/configuration' },
-            { label: 'YAML Schema', slug: 'reference/yaml-schema' },
-            { label: 'API', slug: 'reference/api' },
+            { label: 'Configuration', slug: 'docs/reference/configuration' },
+            { label: 'YAML Schema', slug: 'docs/reference/yaml-schema' },
+            { label: 'API', slug: 'docs/reference/api' },
           ],
         },
         {
           label: 'Integrations',
           items: [
-            { label: 'OpenClaw', slug: 'integrations/openclaw' },
+            { label: 'OpenClaw', slug: 'docs/integrations/openclaw' },
           ],
         },
       ],
