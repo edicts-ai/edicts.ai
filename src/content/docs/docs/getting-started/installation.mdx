@@ -97,19 +97,20 @@ You should see your edicts listed:
 
 ## Using with OpenClaw
 
-If you're using [OpenClaw](https://openclaw.ai), install the plugin with one command:
+If you're using [OpenClaw](https://openclaw.ai), it's two commands:
 
 ```bash
 openclaw plugins install openclaw-plugin-edicts
-```
-
-This installs the plugin and adds it to your `openclaw.json` automatically. Then restart the gateway:
-
-```bash
 openclaw gateway restart
 ```
 
-Every agent session will automatically receive your edicts as ground truth — no code changes needed.
+That's it. The plugin auto-creates `edicts.yaml` in your workspace on first run — no manual setup needed. Start adding edicts right away:
+
+```bash
+edicts add --text "v2.0 launches April 15" --category product --confidence verified
+```
+
+Every agent session will automatically receive your edicts as ground truth.
 
 ## Next steps
 

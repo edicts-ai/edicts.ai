@@ -26,11 +26,13 @@
           <pre class="p-4 text-sm leading-relaxed"><code class="text-text-primary"><span class="text-text-secondary"># Install the plugin</span>
 <span class="text-accent">openclaw</span> plugins install openclaw-plugin-edicts
 
-<span class="text-text-secondary"># Bootstrap your edicts file</span>
-<span class="text-accent">edicts</span> init
-
 <span class="text-text-secondary"># Restart the gateway</span>
-<span class="text-accent">openclaw</span> gateway restart</code></pre>
+<span class="text-accent">openclaw</span> gateway restart
+
+<span class="text-text-secondary"># edicts.yaml is auto-created in your workspace</span>
+<span class="text-text-secondary"># Start adding edicts:</span>
+<span class="text-accent">edicts</span> add --text "v2.0 launches April 15" \
+  --category product --confidence verified</code></pre>
         </div>
 
         <!-- YAML file -->
