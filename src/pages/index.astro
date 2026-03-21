@@ -1,11 +1,18 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Marketing from '../layouts/Marketing.astro';
+import Hero from '../components/Hero.astro';
+import ProblemStatement from '../components/ProblemStatement.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import UseCasesPreview from '../components/UseCasesPreview.astro';
+import MemoryDiagram from '../components/MemoryDiagram.astro';
+import QuickStart from '../components/QuickStart.astro';
 ---
 
-<Layout title="Edicts — Ground truth for AI agents">
-  <main>
-    <h1>Edicts</h1>
-    <p>Ground truth layer for AI agents.</p>
-    <p><a href="https://github.com/mssteuer/edicts">GitHub</a> · <a href="https://www.npmjs.com/package/edicts">npm</a></p>
-  </main>
-</Layout>
+<Marketing title="Edicts — Ground truth for AI agents">
+  <Hero />
+  <ProblemStatement />
+  <HowItWorks />
+  <UseCasesPreview />
+  <MemoryDiagram />
+  <QuickStart />
+</Marketing>
