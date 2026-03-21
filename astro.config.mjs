@@ -35,11 +35,13 @@ export default defineConfig({
             { label: 'Configuration', slug: 'docs/reference/configuration' },
             { label: 'YAML Schema', slug: 'docs/reference/yaml-schema' },
             { label: 'API', slug: 'docs/reference/api' },
+            { label: 'CLI', slug: 'docs/reference/cli' },
           ],
         },
         {
           label: 'Integrations',
           items: [
+            { label: 'Generic / Any Framework', slug: 'docs/integrations/generic' },
             { label: 'OpenClaw', slug: 'docs/integrations/openclaw' },
           ],
         },

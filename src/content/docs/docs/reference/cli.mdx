@@ -1,0 +1,197 @@
+---
+title: "CLI Reference"
+---
+
+The CLI is a convenience tool for common workflows. The primary interface is still the TypeScript API, but the CLI is useful for bootstrapping a store, adding facts quickly, inspecting current state, and wiring lightweight operational scripts.
+
+## Usage
+
+```bash
+edicts [--path FILE] [--format yaml|json] <command> [options]
+```
+
+## Global flags
+
+### `--path FILE`
+
+Path to the edicts file. Defaults to `./edicts.yaml`.
+
+```bash
+edicts --path ./config/edicts.yaml list
+```
+
+### `--format yaml|json`
+
+Select the on-disk store format. If omitted, the store infers format from the file extension.
+
+```bash
+edicts --path ./edicts.json --format json list
+```
+
+## `edicts add`
+
+Add a new edict.
+
+```bash
+edicts add --text TEXT --category CAT [options]
+```
+
+Flags:
+
+- `--text TEXT` — required
+- `--category CAT` — required
+- `--tags TAG1,TAG2` — comma-separated tags
+- `--confidence verified|inferred|user`
+- `--ttl ephemeral|event|durable|permanent`
+- `--key KEY` — stable supersession key
+- `--source SRC` — provenance string
+- `--expiresAt DATE` — explicit ISO timestamp
+- `--expiresIn DURATION` — relative duration such as `30m`, `2h`, `7d`, or numeric seconds
+
+Example:
+
+```bash
+edicts add \
+  --path ./edicts.yaml \
+  --text "Public launch date is April 15, NOT earlier." \
+  --category product \
+  --confidence verified \
+  --ttl event \
+  --key launch_date \
+  --source roadmap_review \
+  --expiresAt 2026-04-16T00:00:00.000Z \
+  --tags launch,public
+```
+
+Example output:
+
+```json
+{
+  "action": "created",
+  "id": "launch_date",
+  "edict": {
+    "id": "launch_date",
+    "text": "Public launch date is April 15, NOT earlier.",
+    "category": "product",
+    "tags": ["launch", "public"],
+    "confidence": "verified",
+    "source": "roadmap_review",
+    "key": "launch_date",
+    "ttl": "event",
+    "expiresAt": "2026-04-16T00:00:00.000Z",
+    "created": "2026-03-21T18:00:00.000Z",
+    "updated": "2026-03-21T18:00:00.000Z"
+  },
+  "pruned": 0
+}
+```
+
+## `edicts list`
+
+List active edicts.
+
+```bash
+edicts list
+```
+
+Default output is plain text:
+
+```text
+- Public launch date is April 15, NOT earlier. ([verified], product, launch, public)
+- Do not name unannounced partners publicly. ([verified], compliance)
+```
+
+Use `--json` for programmatic output:
+
+```bash
+edicts list --json
+```
+
+Example JSON output:
+
+```json
+[
+  {
+    "id": "launch_date",
+    "text": "Public launch date is April 15, NOT earlier.",
+    "category": "product",
+    "tags": ["launch", "public"],
+    "confidence": "verified",
+    "source": "roadmap_review",
+    "key": "launch_date",
+    "ttl": "event",
+    "expiresAt": "2026-04-16T00:00:00.000Z",
+    "created": "2026-03-21T18:00:00.000Z",
+    "updated": "2026-03-21T18:00:00.000Z"
+  }
+]
+```
+
+## `edicts stats`
+
+Print store statistics as JSON.
+
+```bash
+edicts stats
+```
+
+Example output:
+
+```json
+{
+  "total": 6,
+  "history": 2,
+  "tokenCount": 148,
+  "tokenBudget": 4000,
+  "tokenBudgetRemaining": 3852,
+  "byCategory": {
+    "product": 3,
+    "compliance": 2,
+    "operations": 1
+  },
+  "byConfidence": {
+    "verified": 5,
+    "inferred": 1,
+    "user": 0
+  },
+  "byTtl": {
+    "durable": 3,
+    "permanent": 2,
+    "event": 1,
+    "ephemeral": 0
+  },
+  "byTag": {
+    "launch": 1,
+    "public": 2,
+    "migration": 1
+  }
+}
+```
+
+## Other commands currently available
+
+The CLI also currently ships these commands:
+
+- `get <id>`
+- `remove <id>`
+- `update <id>`
+- `search <query>`
+- `review [--stale-days N] [--include-permanent] [--json]`
+- `export [--format json|yaml] [--output FILE]`
+- `import <file> [--merge|--replace]`
+- `init [--path FILE]`
+
+## Not yet fully covered in this CLI guide
+
+We are intentionally keeping this page focused on the most common day-one commands.
+
+For deeper workflows such as:
+
+- targeted `get`
+- mutation via `update`
+- deletion via `remove`
+- text lookup with `search`
+- hygiene checks with `review`
+- migration flows with `export` / `import`
+
+refer to the [API Reference](/docs/reference/api/), which documents the underlying behaviors in more detail.

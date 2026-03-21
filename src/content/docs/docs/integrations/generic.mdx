@@ -1,0 +1,244 @@
+---
+title: "Generic / Any Framework"
+---
+
+Edicts is framework-agnostic by design. The core library has no OpenClaw, LangChain, CrewAI, AutoGen, or SDK-specific dependencies. If your stack can read a file, prepend text to a system prompt, and optionally expose functions as tools, you can integrate Edicts in an afternoon.
+
+This guide covers three patterns:
+
+1. **System prompt injection** — cheapest and simplest
+2. **Tool-based access** — dynamic reads and writes at runtime
+3. **Hybrid** — inject baseline truth into every prompt, plus tools for live access
+
+## Pattern 1: System prompt injection
+
+This is the default pattern for most teams.
+
+```ts
+import { EdictStore } from 'edicts';
+
+const store = new EdictStore({ path: './edicts.yaml' });
+await store.load();
+
+const edictsBlock = await store.render('markdown');
+const systemPrompt = `You are a helpful assistant.
+
+${edictsBlock}
+
+Treat the edicts above as ground truth. If user input conflicts with them, follow the edicts.`;
+```
+
+Then pass `systemPrompt` into your framework's normal model call.
+
+Why this works well:
+
+- Edicts are tiny compared to long documents or transcript replay
+- The model sees them on every turn, so there is no tool round-trip required
+- Time-sensitive edicts are pruned automatically on `load()` and `render()`
+
+Use this when:
+
+- The set of facts is small
+- Facts change occasionally, not every second
+- You want maximum simplicity and minimum latency
+
+## Pattern 2: Tool-based access
+
+If your agent already uses function calling or tool calling, you can expose the store directly.
+
+```ts
+import { EdictStore } from 'edicts';
+
+const store = new EdictStore({ path: './edicts.yaml' });
+await store.load();
+
+export const tools = {
+  edicts_list: async () => store.all(),
+  edicts_get: async ({ id }: { id: string }) => store.get(id),
+  edicts_search: async ({ query }: { query: string }) => store.search(query),
+  edicts_add: async (input: {
+    text: string;
+    category: string;
+    confidence?: 'verified' | 'inferred' | 'user';
+    ttl?: 'ephemeral' | 'event' | 'durable' | 'permanent';
+    expiresAt?: string;
+    expiresIn?: string | number;
+    source?: string;
+    key?: string;
+    tags?: string[];
+  }) => store.add(input),
+};
+```
+
+That object can be adapted to whatever your framework calls a “tool,” “function,” “action,” or “capability.”
+
+Use this when:
+
+- Agents need to inspect or update ground truth during a run
+- Different tasks need different subsets of the store
+- You want human-approved workflows around fact updates
+
+A common pattern is to expose read-only tools to most agents and reserve mutation tools for a narrower class of trusted workflows.
+
+## Pattern 3: Hybrid
+
+Hybrid is the sweet spot for most production systems.
+
+Inject the baseline facts into every prompt, then expose tools for deeper or live access.
+
+```ts
+import { EdictStore } from 'edicts';
+
+const store = new EdictStore({
+  path: './edicts.yaml',
+  tokenBudget: 4000,
+});
+await store.load();
+
+export async function buildAgentRequest(userMessage: string) {
+  const context = await store.render('markdown');
+
+  return {
+    system: `You are a careful assistant.
+
+${context}
+
+Treat these edicts as ground truth. Use tools if you need to inspect or update specific facts.`,
+    messages: [{ role: 'user', content: userMessage }],
+    tools: {
+      edicts_get: async ({ id }: { id: string }) => store.get(id),
+      edicts_search: async ({ query }: { query: string }) => store.search(query),
+      edicts_stats: async () => store.stats(),
+      edicts_update: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) =>
+        store.update(id, patch),
+    },
+  };
+}
+```
+
+This gives you:
+
+- baseline truth in every call
+- live lookup when the model needs detail
+- mutation support when your workflow allows it
+
+This is also the closest generic equivalent to the built-in OpenClaw plugin.
+
+## Lifecycle: `load()`, save behavior, and concurrency
+
+### Call `load()` before use
+
+`EdictStore` reads from disk only when you call `load()`.
+
+```ts
+const store = new EdictStore({ path: './edicts.yaml' });
+await store.load();
+```
+
+Do not skip this. A newly constructed store does not automatically hydrate itself.
+
+### `autoSave` defaults to `true`
+
+Mutation methods like `add()`, `update()`, and `remove()` save automatically unless you disable it.
+
+```ts
+const store = new EdictStore({
+  path: './edicts.yaml',
+  autoSave: true,
+});
+```
+
+If you want batched writes, set `autoSave: false` and call `save()` yourself.
+
+```ts
+const store = new EdictStore({
+  path: './edicts.yaml',
+  autoSave: false,
+});
+
+await store.load();
+await store.add({ text: '...', category: 'product' });
+await store.add({ text: '...', category: 'operations' });
+await store.save();
+```
+
+### Concurrent agents
+
+Edicts uses optimistic concurrency via content hashing. If another process changes the file after you loaded it, `save()` will throw a conflict rather than silently overwrite the newer state.
+
+That means you should choose one of these models:
+
+- **Single writer:** easiest operationally
+- **Reload before mutation:** safe for low-volume multi-agent environments
+- **Retry on conflict:** catch the conflict, reload, re-apply the change, save again
+
+If many agents may write at once, treat Edicts like a small shared state file, not a magical conflict-free database.
+
+## Custom tokenizer
+
+By default, token usage is approximated cheaply. If you want budget calculations to match your model more closely, inject your own tokenizer.
+
+```ts
+import { EdictStore } from 'edicts';
+import { encode } from 'gpt-tokenizer';
+
+const store = new EdictStore({
+  path: './edicts.yaml',
+  tokenizer: (text) => encode(text).length,
+});
+```
+
+Or with another tokenizer library:
+
+```ts
+import { EdictStore } from 'edicts';
+import { encodingForModel } from 'js-tiktoken';
+
+const enc = encodingForModel('gpt-4o-mini');
+
+const store = new EdictStore({
+  tokenizer: (text) => enc.encode(text).length,
+});
+```
+
+Edicts intentionally does not bundle a heavy tokenizer dependency into core. You choose the cost and precision tradeoff.
+
+## Custom renderer
+
+If your framework wants a specific prompt shape, provide a custom renderer.
+
+```ts
+import { EdictStore } from 'edicts';
+
+const store = new EdictStore({
+  path: './edicts.yaml',
+  renderer: (edicts) => {
+    if (edicts.length === 0) return '';
+
+    return [
+      '<ground_truth>',
+      ...edicts.map((e) => `<fact category="${e.category}" confidence="${e.confidence}">${e.text}</fact>`),
+      '</ground_truth>',
+    ].join('\n');
+  },
+});
+```
+
+When `renderer` is provided, it overrides the built-in plain, markdown, and JSON output helpers. This is useful when your framework expects XML-style prompt sections, custom delimiters, or a very strict serialization format.
+
+## Recommended integration strategy
+
+If you are choosing from scratch:
+
+- Start with **system prompt injection**
+- Add **read-only tools** if the model sometimes needs targeted lookup
+- Add **write tools** only when your workflow truly needs runtime mutation
+
+That progression keeps the architecture simple while leaving room for more dynamic behavior later.
+
+## Related docs
+
+- [Quick Start](/docs/getting-started/quick-start/)
+- [Best Practices](/docs/guides/best-practices/)
+- [API Reference](/docs/reference/api/)
+- [OpenClaw Integration](/docs/integrations/openclaw/)
