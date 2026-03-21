@@ -29,9 +29,36 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
   </TabItem>
 </Tabs>
 
+### Global install (recommended for CLI usage)
+
+Install globally so `edicts` is available as a command everywhere:
+
+```bash
+npm install -g edicts
+```
+
+Or if you're developing locally:
+
+```bash
+npm link
+```
+
 ## Create your first edicts file
 
-Create `edicts.yaml` in your project root:
+The fastest way is with `edicts init`:
+
+```bash
+edicts init
+# Created ./edicts.yaml
+```
+
+This creates a starter `edicts.yaml` in the current directory. You can also specify a custom path:
+
+```bash
+edicts init --path ./config/edicts.yaml
+```
+
+The generated file looks like this:
 
 ```yaml
 version: 1
@@ -41,32 +68,57 @@ config:
   categories: []
 edicts:
   - id: e_001
-    text: "Product v2.0 launches April 15, NOT before."
-    category: product
-    tags: []
+    text: "Replace this with your first edict"
+    category: general
     confidence: verified
     source: manual
-    ttl: event
-    expiresAt: "2025-04-16T00:00:00.000Z"
-    created: "2025-03-20T00:00:00.000Z"
-    updated: "2025-03-20T00:00:00.000Z"
+    ttl: durable
 history: []
+```
+
+Edit the placeholder edict with your own ground truth, or add new ones with the CLI:
+
+```bash
+edicts add --text "v2.0 launches April 15" --category product --confidence verified
 ```
 
 ## Verify
 
-Use the CLI to confirm everything works:
+```bash
+edicts list
+```
+
+You should see your edicts listed:
+
+```
+- Replace this with your first edict ([verified], general)
+- v2.0 launches April 15 ([verified], product)
+```
+
+## Using with OpenClaw
+
+If you're using [OpenClaw](https://openclaw.ai), install the plugin:
 
 ```bash
-npx edicts list
+npm install openclaw-plugin-edicts
 ```
 
-You should see your edict listed:
+Then add it to your `openclaw.json`:
 
+```json
+{
+  "plugins": {
+    "entries": {
+      "edicts": {
+        "enabled": true
+      }
+    }
+  }
+}
 ```
-e_001  [product]  Product v2.0 launches April 15, NOT before.  (verified, event)
-```
+
+Every agent session will automatically receive your edicts as ground truth — no code changes needed.
 
 ## Next steps
 
-Head to the [Quick Start](/docs/getting-started/quick-start/) to add edicts programmatically and render them into your agent's prompt.
+Head to the [Quick Start](/edicts.ai/docs/getting-started/quick-start/) to add edicts programmatically and render them into your agent's prompt.
