@@ -3,8 +3,8 @@ import starlight from '@astrojs/starlight';
 import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  site: 'https://mssteuer.github.io',
-  base: '/edicts.ai/',
+  site: 'https://edicts.ai',
+  base: '/',
   output: 'static',
   integrations: [
     starlight({
