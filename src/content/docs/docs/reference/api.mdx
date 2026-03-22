@@ -169,15 +169,16 @@ const json = await store.render('json');
 
 **Markdown output:**
 ```markdown
-## Edicts
+# Edicts (1 items)
 
-- **[product]** Product v2.0 launches April 15, NOT before. *(verified, event — expires 2025-04-16)*
+## product
+
+- Product v2.0 launches April 15, NOT before. _(verified)_
 ```
 
 **Plain output:**
 ```
-Edicts:
-[product] Product v2.0 launches April 15, NOT before. (verified, event — expires 2025-04-16)
+- Product v2.0 launches April 15, NOT before. ([verified], product)
 ```
 
 **JSON output:**
@@ -186,6 +187,13 @@ Edicts:
 ```
 
 If a custom `renderer` was provided in options, it's used instead (ignoring the format parameter).
+
+:::note[OpenClaw plugin rendering]
+The OpenClaw plugin does **not** use `render()`. It renders a minimal format optimized for prompt injection — just the category prefix and rule text, no tags or metadata:
+```
+- [product] Product v2.0 launches April 15, NOT before.
+```
+:::
 
 ---
 
