@@ -39,33 +39,42 @@ await store.add({
 
 ## Render for prompt injection
 
-The `render()` method produces a formatted string ready to inject into any LLM prompt:
+The simplest way to inject edicts into a prompt — just the category and rule text:
 
 ```typescript
-const rendered = await store.render();
-console.log(rendered);
+const edicts = await store.all();
+const lines = edicts.map(e => `- [${e.category}] ${e.text}`).join('\n');
+console.log(lines);
 ```
 
-Output (markdown format, default):
+Output:
 
-```markdown
-## Edicts
-
-- **[product]** Product v2.0 launches April 15, NOT before. *(verified, event — expires 2025-04-16)*
-- **[compliance]** Never mention Project X publicly. *(verified, permanent)*
-- **[operations]** Database migration in progress — no writes to users table. *(verified, ephemeral — expires in 48h)*
 ```
+- [product] Product v2.0 launches April 15, NOT before.
+- [compliance] Never mention Project X publicly.
+- [operations] Database migration in progress — no writes to users table.
+```
+
+No tags, no metadata, no noise. Just the rules.
+
+:::tip[Using OpenClaw?]
+The [OpenClaw plugin](/docs/integrations/openclaw/) handles this automatically — edicts are injected into every prompt with binding framing, zero code required.
+:::
 
 ## Inject into your agent
 
-Edicts is framework-agnostic. Concatenate the rendered output with your system prompt:
+Edicts is framework-agnostic. Concatenate the rendered rules with your system prompt:
 
 ```typescript
+const edicts = await store.all();
+const rules = edicts.map(e => `- [${e.category}] ${e.text}`).join('\n');
+
 const systemPrompt = `You are a helpful assistant.
 
-${await store.render()}
+## Standing Rules
+${rules}
 
-Use the edicts above as ground truth. Never contradict them.`;
+Follow the rules above. Never contradict them.`;
 
 // Pass systemPrompt to your LLM of choice
 ```
