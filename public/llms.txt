@@ -1,0 +1,76 @@
+# Edicts — Ground Truth Layer for AI Agents
+
+> Standing instructions that persist across sessions, survive context windows, and keep AI agents aligned with user intent.
+
+Edicts solves the "amnesia problem" — AI agents forget instructions between sessions. Edicts provides a structured, searchable, version-aware store for standing instructions (edicts) that agents load on every session.
+
+## What Edicts Does
+
+- **Persistent instructions**: Rules, preferences, and constraints that survive session restarts
+- **Structured metadata**: Each edict has category, TTL (ephemeral/event/durable/permanent), confidence level, tags, and optional expiry
+- **CRUD + Search**: Create, read, update, delete, and semantically search edicts
+- **Compact/deduplicate**: Automatically merge duplicate or overlapping edicts
+- **Multi-format**: YAML file storage, programmatic API, CLI, and OpenClaw plugin
+
+## Install
+
+```bash
+npm install edicts
+```
+
+## Quick Start
+
+```typescript
+import { EdictStore } from 'edicts';
+
+const store = new EdictStore({ filePath: './edicts.yaml' });
+await store.load();
+
+// Add an edict
+await store.add({
+  text: 'Always respond in Spanish when the user writes in Spanish',
+  category: 'communication',
+  ttl: 'permanent',
+  confidence: 'user'
+});
+
+// Search edicts
+const results = await store.search('language preference');
+
+// List by category
+const rules = await store.list({ category: 'rules' });
+```
+
+## CLI
+
+```bash
+npx edicts add "Never share API keys in logs" --category security --ttl permanent
+npx edicts list --category security
+npx edicts search "API keys"
+npx edicts compact  # Merge duplicates
+npx edicts stats
+```
+
+## TTL Levels
+
+| TTL | Meaning | Example |
+|-----|---------|---------|
+| `ephemeral` | Single session | "Use verbose logging for this debug session" |
+| `event` | Until event completes | "Prioritize launch prep until March 31" |
+| `durable` | Long-lived, review periodically | "Weekly report format: bullet points" |
+| `permanent` | Never expires | "Never share credentials externally" |
+
+## Integrations
+
+- **OpenClaw**: First-class plugin — edicts injected into every agent session automatically
+- **Generic**: Works with any AI framework via the programmatic API or YAML file
+
+## Links
+
+- Website: https://edicts.ai
+- GitHub: https://github.com/edicts-ai/edicts
+- npm: https://www.npmjs.com/package/edicts
+- Docs: https://edicts.ai/docs/getting-started/installation/
+- API Reference: https://edicts.ai/docs/reference/api/
+- CLI Reference: https://edicts.ai/docs/reference/cli/
+- Best Practices: https://edicts.ai/docs/guides/best-practices/

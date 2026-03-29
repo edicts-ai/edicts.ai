@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Edicts",
+  "name_for_model": "edicts",
+  "description_for_human": "Ground truth layer for AI agents — persistent standing instructions that survive context windows.",
+  "description_for_model": "Edicts is a structured store for AI agent standing instructions. It provides persistent rules, preferences, and constraints that load on every session. Use edicts when you need instructions that survive session restarts. Available as npm package, CLI, and OpenClaw plugin.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://edicts.ai/llms.txt"
+  },
+  "logo_url": "https://edicts.ai/favicon.svg",
+  "contact_email": "jeanclawdai@proton.me",
+  "legal_info_url": "https://edicts.ai"
+}
